@@ -1,6 +1,6 @@
 {
   "name": "tdc",
-  "version": "1.0.1",
+  "version": "2.1.0",
   "description": "ETS2/ATS Traffic Density Changer",
   "author": "Sebastian Falter",
   "main": "main/main.js",
