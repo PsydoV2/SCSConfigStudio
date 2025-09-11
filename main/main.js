@@ -14,6 +14,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
+    icon: path.join(__dirname, "../assets/icon.ico"),
   });
 
   if (process.env.NODE_ENV === "development") {

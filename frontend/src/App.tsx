@@ -1,152 +1,247 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { GrDocumentConfig } from "react-icons/gr";
+import { motion } from "framer-motion";
 import "./App.css";
+import { FaSave, FaTrafficLight } from "react-icons/fa";
+import { RxReset } from "react-icons/rx";
+import { FaPersonWalking } from "react-icons/fa6";
 
-function App() {
-  const [hasAts, setHasAts] = useState(false);
-  const [hasEts, setHasEts] = useState(false);
+// type SimKey = "ats" | "ets";
 
-  const [atsTraffic, setAtsTraffic] = useState(1);
-  const [atsPedestrian, setAtsPedestrian] = useState(1);
-  const [etsTraffic, setEtsTraffic] = useState(1);
-  const [etsPedestrian, setEtsPedestrian] = useState(1);
+type SimState = {
+  hasConfig: boolean;
+  traffic: number;
+  pedestrian: number;
+};
 
+const fadeInUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.28 } },
+};
+
+export default function App() {
+  const [ats, setAts] = useState<SimState>({
+    hasConfig: false,
+    traffic: 1,
+    pedestrian: 1,
+  });
+  const [ets, setEts] = useState<SimState>({
+    hasConfig: false,
+    traffic: 1,
+    pedestrian: 1,
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Initial load (kein Loop)
   useEffect(() => {
-    window.api.checkConfig((result) => {
-      setHasAts(result.ats);
-      setHasEts(result.ets);
+    (async () => {
+      window.api.checkConfig((result: { ats: boolean; ets: boolean }) => {
+        setAts((s) => ({ ...s, hasConfig: result.ats }));
+        setEts((s) => ({ ...s, hasConfig: result.ets }));
+
+        if (result.ats) {
+          window.api.readAtsValuesFromConfig(
+            (r: { traffic: number; pedestrian: number }) =>
+              setAts({
+                hasConfig: true,
+                traffic: r.traffic,
+                pedestrian: r.pedestrian,
+              })
+          );
+        }
+        if (result.ets) {
+          window.api.readEtsValuesFromConfig(
+            (r: { traffic: number; pedestrian: number }) =>
+              setEts({
+                hasConfig: true,
+                traffic: r.traffic,
+                pedestrian: r.pedestrian,
+              })
+          );
+        }
+        setLoading(false);
+      });
+    })();
+  }, []);
+
+  const saveAts = () =>
+    window.api.setAtsValues({
+      traffic: ats.traffic,
+      pedestrian: ats.pedestrian,
+    });
+  const saveEts = () =>
+    window.api.setEtsValues({
+      traffic: ets.traffic,
+      pedestrian: ets.pedestrian,
     });
 
-    if (hasAts) {
-      window.api.readAtsValuesFromConfig((result) => {
-        setAtsTraffic(result.traffic);
-        setAtsPedestrian(result.pedestrian);
-      });
-    }
-
-    if (hasEts) {
-      window.api.readEtsValuesFromConfig((result) => {
-        setEtsTraffic(result.traffic);
-        setEtsPedestrian(result.pedestrian);
-      });
-    }
-  }, [hasAts, hasEts]);
-
-  const handelSaveAts = () => {
-    window.api.setAtsValues({ traffic: atsTraffic, pedestrian: atsPedestrian });
+  const resetAts = () => {
+    const v = { traffic: 1, pedestrian: 1 };
+    setAts((s) => ({ ...s, ...v }));
+    window.api.setAtsValues(v);
   };
-
-  const handelSaveEts = () => {
-    window.api.setEtsValues({ traffic: etsTraffic, pedestrian: etsPedestrian });
-  };
-
-  const handelResetAts = () => {
-    setAtsTraffic(1);
-    setAtsPedestrian(1);
-    window.api.setAtsValues({ traffic: 1, pedestrian: 1 });
-  };
-
-  const handelResetEts = () => {
-    setEtsTraffic(1);
-    setEtsPedestrian(1);
-    window.api.setEtsValues({ traffic: 1, pedestrian: 1 });
+  const resetEts = () => {
+    const v = { traffic: 1, pedestrian: 1 };
+    setEts((s) => ({ ...s, ...v }));
+    window.api.setEtsValues(v);
   };
 
   return (
-    <div className="appContainer">
-      <nav>🚚 Traffic Density Changer 🚚</nav>
+    <div className="appRoot">
+      <motion.nav
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.25 } }}
+        className="topbar"
+      >
+        <span className="logo">Traffic Density Changer</span>
+        <span className="badge">ATS / ETS2</span>
+      </motion.nav>
 
-      <div className="gameContainer">
-        {!hasAts && (
-          <div className="disabled">
-            <div className="disabledInfo">
-              <GrDocumentConfig />
-              <span>No Config file found!</span>
-            </div>
-          </div>
-        )}
-        <h2>American Truck Simulator</h2>
-
-        <label htmlFor="atstraffic">
-          Traffic:
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{" "}
-          <span>{atsTraffic}</span>/10
-        </label>
-        <input
-          type="range"
-          id="atstraffic"
-          min={0}
-          max={10}
-          step={1}
-          value={atsTraffic}
-          onChange={(e) => setAtsTraffic(Number(e.target.value))}
+      <main className="grid">
+        <GameCard
+          title="American Truck Simulator"
+          state={ats}
+          onChange={(patch) => setAts((s) => ({ ...s, ...patch }))}
+          onSave={saveAts}
+          onReset={resetAts}
+          loading={loading}
         />
-
-        <label htmlFor="atspedestrian">
-          Pedestrian:&nbsp;&nbsp;&nbsp;&nbsp; <span>{atsPedestrian}</span>/10
-        </label>
-        <input
-          type="range"
-          id="atspedestrian"
-          min={0}
-          max={10}
-          step={1}
-          value={atsPedestrian}
-          onChange={(e) => setAtsPedestrian(Number(e.target.value))}
+        <GameCard
+          title="Euro Truck Simulator 2"
+          state={ets}
+          onChange={(patch) => setEts((s) => ({ ...s, ...patch }))}
+          onSave={saveEts}
+          onReset={resetEts}
+          loading={loading}
         />
-
-        <div className="btnBox">
-          <button onClick={handelSaveAts}>SAVE</button>
-          <button onClick={handelResetAts}>RESET</button>
-        </div>
-      </div>
-
-      <div className="gameContainer">
-        {!hasEts && (
-          <div className="disabled">
-            <div className="disabledInfo">
-              <GrDocumentConfig />
-              <span>No Config file found!</span>
-            </div>
-          </div>
-        )}
-        <h2>Euro Truck Simulator 2</h2>
-
-        <label htmlFor="etstraffic">
-          Traffic:
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{" "}
-          <span>{etsTraffic}</span>/10
-        </label>
-        <input
-          type="range"
-          id="etstraffic"
-          min={0}
-          max={10}
-          step={1}
-          value={etsTraffic}
-          onChange={(e) => setEtsTraffic(Number(e.target.value))}
-        />
-
-        <label htmlFor="etspedestrian">
-          Pedestrian:&nbsp;&nbsp;&nbsp;&nbsp; <span>{etsPedestrian}</span>/10
-        </label>
-        <input
-          type="range"
-          id="etspedestrian"
-          min={0}
-          max={10}
-          step={1}
-          value={etsPedestrian}
-          onChange={(e) => setEtsPedestrian(Number(e.target.value))}
-        />
-
-        <div className="btnBox">
-          <button onClick={handelSaveEts}>SAVE</button>
-          <button onClick={handelResetEts}>RESET</button>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
 
-export default App;
+function GameCard({
+  title,
+  state,
+  onChange,
+  onSave,
+  onReset,
+  loading,
+}: {
+  title: string;
+  state: { hasConfig: boolean; traffic: number; pedestrian: number };
+  onChange: (patch: Partial<{ traffic: number; pedestrian: number }>) => void;
+  onSave: () => void;
+  onReset: () => void;
+  loading: boolean;
+}) {
+  const disabled = !state.hasConfig;
+  const max = 10;
+
+  const header = useMemo(
+    () => (
+      <div className="cardHeader">
+        <h2>{title}</h2>
+        <div className="pillGroup" aria-hidden>
+          <span className="pill">
+            <FaTrafficLight /> Traffic <strong>{state.traffic}</strong>/{max}
+          </span>
+          <span className="pill">
+            <FaPersonWalking /> Pedestrian <strong>{state.pedestrian}</strong>/
+            {max}
+          </span>
+        </div>
+      </div>
+    ),
+    [title, state.traffic, state.pedestrian]
+  );
+
+  return (
+    <motion.section
+      className="card"
+      variants={fadeInUp}
+      initial="hidden"
+      animate="visible"
+      layout
+    >
+      {header}
+
+      <div className="field">
+        <label htmlFor={`${title}-traffic`}>Traffic</label>
+        <div className="rangeRow">
+          <input
+            id={`${title}-traffic`}
+            type="range"
+            min={0}
+            max={max}
+            step={1}
+            value={state.traffic}
+            onChange={(e) => onChange({ traffic: Number(e.target.value) })}
+            disabled={disabled}
+          />
+          <span className="value">{state.traffic}</span>
+        </div>
+      </div>
+
+      <div className="field">
+        <label htmlFor={`${title}-pedestrian`}>Pedestrian</label>
+        <div className="rangeRow">
+          <input
+            id={`${title}-pedestrian`}
+            type="range"
+            min={0}
+            max={max}
+            step={1}
+            value={state.pedestrian}
+            onChange={(e) => onChange({ pedestrian: Number(e.target.value) })}
+            disabled={disabled}
+          />
+          <span className="value">{state.pedestrian}</span>
+        </div>
+      </div>
+
+      <div className="actions">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="btn primary"
+          onClick={onSave}
+          disabled={disabled}
+        >
+          <FaSave /> Save
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="btn ghost"
+          onClick={onReset}
+          disabled={disabled}
+        >
+          <RxReset /> Reset
+        </motion.button>
+      </div>
+
+      {loading && (
+        <motion.div
+          className="overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="loader"></div>
+        </motion.div>
+      )}
+
+      {!loading && disabled && (
+        <motion.div
+          className="overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <GrDocumentConfig />
+          <p>No config file found!</p>
+        </motion.div>
+      )}
+    </motion.section>
+  );
+}
