@@ -20,7 +20,8 @@ This project was built for both personal use and as a showcase of practical desk
 ## 📸 Screenshots
 
 <!-- Add your own screenshots here later -->
-<!-- ![App Screenshot](./assets/screenshot.png) -->
+
+![App Screenshot](https://www.sfalter.de/FileHosting/TDChangerScreen.png)
 
 ---
 
