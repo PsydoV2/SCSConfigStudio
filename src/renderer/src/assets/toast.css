@@ -1,0 +1,62 @@
+/* Grundlegendes Styling des Containers */
+.toast-container {
+  position: fixed;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%); /* Zentrierung */
+  padding: 10px 20px;
+  border-radius: 12px;
+  z-index: 9999;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  min-width: 200px;
+  text-align: center;
+  pointer-events: none; /* Verhindert, dass der Toast Klicks blockiert */
+}
+
+.toast-text {
+  color: white;
+  font-weight: 600;
+  font-family: sans-serif;
+}
+
+/* Typ-Farben (Äquivalent zu deinem ColorPalette) */
+.success {
+  background-color: #28a745;
+}
+.error {
+  background-color: #dc3545;
+}
+.info {
+  background-color: #17a2b8;
+}
+
+/* Animationen */
+.enter {
+  animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.exit {
+  animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -100px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -100px);
+  }
+}
