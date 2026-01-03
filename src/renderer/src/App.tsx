@@ -75,7 +75,9 @@ const App = () => {
 
   return (
     <>
-      <header></header>
+      <header>
+        <img src="./assets/icon.png" alt="Logo" />
+      </header>
       <Section
         activeValues={activeTab === "ets2" ? ets2Values : atsValues}
         updateValue={updateValue}

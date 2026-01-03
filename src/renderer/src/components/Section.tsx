@@ -78,7 +78,7 @@ export default function Section({ activeValues, updateValue }: SectionProps) {
   ];
 
   return (
-    <section>
+    <section className="paramSection">
       {parameters.map((parameter: ParameterSlider, index) => (
         <ParamSlider
           param={parameter}

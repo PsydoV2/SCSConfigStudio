@@ -1,4 +1,5 @@
 import { ParameterSlider } from "@renderer/App";
+import { FaInfo } from "react-icons/fa6";
 
 interface ParamSliderProps {
   param: ParameterSlider;
@@ -12,17 +13,24 @@ export default function ParamSlider({
   updateValue,
 }: ParamSliderProps) {
   return (
-    <div>
-      <span>{param.label}</span>
-      <input
-        type="range"
-        min={param.min}
-        max={param.max}
-        step={param.step}
-        value={currentValue}
-        onChange={(e) => updateValue(param.key, e.target.value)}
-      />
-      <span>{currentValue}</span>
+    <div className="paramSlider">
+      <div className="paramSliderHeader">
+        <h3>{param.label}</h3>
+        <div className="infoIcon">
+          <FaInfo />
+        </div>
+      </div>
+      <div>
+        <input
+          type="range"
+          min={param.min}
+          max={param.max}
+          step={param.step}
+          value={currentValue}
+          onChange={(e) => updateValue(param.key, e.target.value)}
+        />
+        <span>{currentValue}</span>
+      </div>
     </div>
   );
 }
