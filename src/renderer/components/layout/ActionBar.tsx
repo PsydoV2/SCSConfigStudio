@@ -3,13 +3,13 @@ import type { GameId } from "../../../shared/types";
 import { Button } from "../ui/Button";
 
 interface ActionBarProps {
-  activeGame:    GameId;
-  isDirty:       boolean;
-  status:        "idle" | "loading" | "saving" | "error";
-  onReset:       () => void;
+  activeGame: GameId;
+  isDirty: boolean;
+  status: "idle" | "loading" | "saving" | "error";
+  onReset: () => void;
   onRecommended: () => void;
-  onLoad:        () => void;
-  onSave:        () => void;
+  onLoad: () => void;
+  onSave: () => void;
 }
 
 export function ActionBar({
@@ -40,13 +40,22 @@ export function ActionBar({
           <div className="action-bar__game-chip">
             <span>{game.flag}</span>
             <span>{game.shortName}</span>
-            {isDirty && <span className="action-bar__dirty-indicator" aria-label="Unsaved changes" />}
+            {isDirty && (
+              <span
+                className="action-bar__dirty-indicator"
+                aria-label="Unsaved changes"
+              />
+            )}
           </div>
         )}
         <Button variant="secondary" onClick={onLoad} disabled={isBusy}>
-          {status === "loading" ? "Loading…" : "↓ Load from File"}
+          {status === "loading" ? "Loading…" : "↺ Reload File"}
         </Button>
-        <Button variant="primary" onClick={onSave} disabled={isBusy || !isDirty}>
+        <Button
+          variant="primary"
+          onClick={onSave}
+          disabled={isBusy || !isDirty}
+        >
           {status === "saving" ? "Saving…" : "Save & Apply"}
         </Button>
       </div>

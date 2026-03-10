@@ -4,21 +4,23 @@ import type { CategoryId, GameId, ParamValues } from "../../../shared/types";
 import { Button } from "../ui/Button";
 
 interface SidebarProps {
-  activeGame:     GameId;
+  activeGame: GameId;
   activeCategory: CategoryId;
-  values:         ParamValues;
-  configPath:     string | null;
-  modifiedCount:  number;
-  showPreview:    boolean;
-  onGameChange:       (game: GameId)         => void;
-  onCategoryChange:   (cat: CategoryId)      => void;
-  onTogglePreview:    ()                     => void;
+  values: ParamValues;
+  savedValues: ParamValues; // what's on disk — badges show diff against this
+  configPath: string | null;
+  modifiedCount: number;
+  showPreview: boolean;
+  onGameChange: (game: GameId) => void;
+  onCategoryChange: (cat: CategoryId) => void;
+  onTogglePreview: () => void;
 }
 
 export function Sidebar({
   activeGame,
   activeCategory,
   values,
+  savedValues,
   configPath,
   modifiedCount,
   showPreview,
@@ -32,9 +34,21 @@ export function Sidebar({
       <div className="sidebar__logo">
         <div className="sidebar__logo-icon" aria-hidden="true">
           <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
-            <path d="M4 20L14 8L24 20" stroke="#ff9100" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="14" cy="20" r="3" fill="#ff9100"/>
-            <path d="M9 20h10" stroke="#ff9100" strokeWidth="2" strokeLinecap="round" opacity="0.35"/>
+            <path
+              d="M4 20L14 8L24 20"
+              stroke="#ff9100"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle cx="14" cy="20" r="3" fill="#ff9100" />
+            <path
+              d="M9 20h10"
+              stroke="#ff9100"
+              strokeWidth="2"
+              strokeLinecap="round"
+              opacity="0.35"
+            />
           </svg>
         </div>
         <div>
@@ -55,10 +69,16 @@ export function Sidebar({
           >
             <span className="game-btn__flag">{game.flag}</span>
             <div className="game-btn__text">
-              <span className="game-btn__name">{game.name.split(" ").slice(0, 2).join(" ")}</span>
-              <span className="game-btn__sub">{game.name.split(" ").slice(2).join(" ")}</span>
+              <span className="game-btn__name">
+                {game.name.split(" ").slice(0, 2).join(" ")}
+              </span>
+              <span className="game-btn__sub">
+                {game.name.split(" ").slice(2).join(" ")}
+              </span>
             </div>
-            {activeGame === game.id && <span className="game-btn__dot" aria-hidden="true" />}
+            {activeGame === game.id && (
+              <span className="game-btn__dot" aria-hidden="true" />
+            )}
           </button>
         ))}
       </div>
@@ -68,7 +88,8 @@ export function Sidebar({
         <p className="sidebar__section-label">Categories</p>
         {CATEGORIES.map((cat) => {
           const modified = PARAMETERS.filter(
-            (p) => p.category === cat.id && values[p.key] !== p.defaultValue
+            (p) =>
+              p.category === cat.id && values[p.key] !== savedValues[p.key],
           ).length;
 
           return (
@@ -78,10 +99,15 @@ export function Sidebar({
               onClick={() => onCategoryChange(cat.id)}
               aria-current={activeCategory === cat.id ? "page" : undefined}
             >
-              <span className="cat-btn__icon" aria-hidden="true">{cat.icon}</span>
+              <span className="cat-btn__icon" aria-hidden="true">
+                {cat.icon}
+              </span>
               <span className="cat-btn__label">{cat.label}</span>
               {modified > 0 && (
-                <span className="cat-btn__badge" aria-label={`${modified} modified`}>
+                <span
+                  className="cat-btn__badge"
+                  aria-label={`${modified} modified`}
+                >
                   {modified}
                 </span>
               )}
@@ -100,7 +126,9 @@ export function Sidebar({
         {modifiedCount > 0 && (
           <div className="sidebar__dirty">
             <span className="sidebar__dirty-dot" aria-hidden="true" />
-            <span>{modifiedCount} unsaved change{modifiedCount !== 1 ? "s" : ""}</span>
+            <span>
+              {modifiedCount} unsaved change{modifiedCount !== 1 ? "s" : ""}
+            </span>
           </div>
         )}
         <Button variant="ghost" size="sm" onClick={onTogglePreview}>

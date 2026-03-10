@@ -1,19 +1,19 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { PARAMETERS, RECOMMENDED_VALUES } from "../constants/parameters";
 import { useConfig } from "./hooks/useConfig";
 import { useToast } from "./context/ToastContext";
-import { Sidebar }    from "./components/layout/Sidebar";
-import { Toolbar }    from "./components/layout/Toolbar";
-import { ActionBar }  from "./components/layout/ActionBar";
+import { Sidebar } from "./components/layout/Sidebar";
+import { Toolbar } from "./components/layout/Toolbar";
+import { ActionBar } from "./components/layout/ActionBar";
 import { CfgPreview } from "./components/layout/CfgPreview";
 import { ParamControl } from "./components/params/ParamControl";
 import type { CategoryId, GameId } from "../shared/types";
 
 export function App() {
-  const [activeGame, setActiveGame]         = useState<GameId>("ets2");
+  const [activeGame, setActiveGame] = useState<GameId>("ets2");
   const [activeCategory, setActiveCategory] = useState<CategoryId>("world");
-  const [searchQuery, setSearchQuery]       = useState("");
-  const [showPreview, setShowPreview]       = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
 
   const { showToast } = useToast();
 
@@ -30,10 +30,24 @@ export function App() {
     setSearchQuery("");
   }
 
+  // Auto-load config whenever the active game changes (and on initial mount).
+  // The hook's useEffect triggers loadFromFile; we watch status here for toast feedback.
+  useEffect(() => {
+    config.loadFromFile().then((ok) => {
+      if (ok) {
+        showToast("Config loaded", "success");
+      } else {
+        showToast(config.lastError ?? "Config file not found", "error");
+      }
+    });
+    // Re-run only when the game changes — intentionally omitting other deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGame]);
+
   const handleLoad = useCallback(async () => {
-    await config.loadFromFile();
-    if (config.status !== "error") {
-      showToast("Config loaded from file", "success");
+    const ok = await config.loadFromFile();
+    if (ok) {
+      showToast("Config reloaded from file", "success");
     } else {
       showToast(config.lastError ?? "Failed to load config", "error");
     }
@@ -60,7 +74,7 @@ export function App() {
 
   const handleCopyPreview = useCallback(() => {
     const lines = PARAMETERS.map(
-      (p) => `uset ${p.cfgKey} "${config.values[p.key] ?? p.defaultValue}"`
+      (p) => `uset ${p.cfgKey} "${config.values[p.key] ?? p.defaultValue}"`,
     ).join("\n");
     navigator.clipboard.writeText(lines);
     showToast("Copied to clipboard", "success");
@@ -74,15 +88,20 @@ export function App() {
         (p) =>
           p.label.toLowerCase().includes(q) ||
           p.cfgKey.toLowerCase().includes(q) ||
-          p.tooltip.toLowerCase().includes(q)
+          p.tooltip.toLowerCase().includes(q),
       );
     }
     return PARAMETERS.filter((p) => p.category === activeCategory);
   }, [searchQuery, activeCategory]);
 
+  // "modified" means changed compared to what's currently saved in the file,
+  // not compared to the hardcoded defaults.
   const modifiedCount = useMemo(
-    () => PARAMETERS.filter((p) => config.values[p.key] !== p.defaultValue).length,
-    [config.values]
+    () =>
+      PARAMETERS.filter(
+        (p) => config.values[p.key] !== config.savedValues[p.key],
+      ).length,
+    [config.values, config.savedValues],
   );
 
   return (
@@ -91,6 +110,7 @@ export function App() {
         activeGame={activeGame}
         activeCategory={activeCategory}
         values={config.values}
+        savedValues={config.savedValues}
         configPath={config.configPath}
         modifiedCount={modifiedCount}
         showPreview={showPreview}
@@ -128,6 +148,7 @@ export function App() {
                 key={param.key}
                 param={param}
                 value={config.values[param.key] ?? param.defaultValue}
+                savedValue={config.savedValues[param.key] ?? param.defaultValue}
                 onChange={config.updateValue}
               />
             ))

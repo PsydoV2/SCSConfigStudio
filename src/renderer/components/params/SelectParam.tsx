@@ -5,11 +5,17 @@ import { Tooltip } from "../ui/Tooltip";
 interface SelectParamProps {
   param: ParameterDef;
   value: number;
+  savedValue: number;
   onChange: (key: string, value: number) => void;
 }
 
-export function SelectParam({ param, value, onChange }: SelectParamProps) {
-  const isModified = value !== param.defaultValue;
+export function SelectParam({
+  param,
+  value,
+  savedValue,
+  onChange,
+}: SelectParamProps) {
+  const isModified = value !== savedValue;
 
   return (
     <div className="param-card">

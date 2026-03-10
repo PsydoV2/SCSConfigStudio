@@ -5,13 +5,24 @@ import { Tooltip } from "../ui/Tooltip";
 interface SliderParamProps {
   param: ParameterDef;
   value: number;
+  savedValue: number;
   onChange: (key: string, value: number) => void;
 }
 
-export function SliderParam({ param, value, onChange }: SliderParamProps) {
-  const isModified  = value !== param.defaultValue;
-  const hasWarning  = !!(param.warning && param.recommended && value > param.recommended);
-  const fillPercent = ((value - (param.min ?? 0)) / ((param.max ?? 1) - (param.min ?? 0))) * 100;
+export function SliderParam({
+  param,
+  value,
+  savedValue,
+  onChange,
+}: SliderParamProps) {
+  const isModified = value !== savedValue;
+  const hasWarning = !!(
+    param.warning &&
+    param.recommended &&
+    value > param.recommended
+  );
+  const fillPercent =
+    ((value - (param.min ?? 0)) / ((param.max ?? 1) - (param.min ?? 0))) * 100;
 
   function handleSliderChange(e: React.ChangeEvent<HTMLInputElement>) {
     onChange(param.key, parseFloat(e.target.value));
@@ -30,15 +41,16 @@ export function SliderParam({ param, value, onChange }: SliderParamProps) {
         <div className="param-card__meta">
           <div className="param-card__label-row">
             <span className="param-card__label">{param.label}</span>
-            {isModified  && <Badge variant="modified">modified</Badge>}
-            {hasWarning  && <Badge variant="warning">⚠ warning</Badge>}
+            {isModified && <Badge variant="modified">modified</Badge>}
+            {hasWarning && <Badge variant="warning">⚠ warning</Badge>}
             <Tooltip text={param.tooltip} />
           </div>
           <div className="param-card__sub-row">
             <code className="param-card__cfg-key">{param.cfgKey}</code>
             {param.recommended !== undefined && (
               <span className="param-card__hint">
-                Recommended: {param.recommended}{param.unit}
+                Recommended: {param.recommended}
+                {param.unit}
               </span>
             )}
           </div>
@@ -47,7 +59,10 @@ export function SliderParam({ param, value, onChange }: SliderParamProps) {
 
       <div className="param-card__control param-card__control--slider">
         <div className="slider-track">
-          <div className="slider-track__fill" style={{ width: `${fillPercent}%` }} />
+          <div
+            className="slider-track__fill"
+            style={{ width: `${fillPercent}%` }}
+          />
           <input
             type="range"
             className="slider-track__input"

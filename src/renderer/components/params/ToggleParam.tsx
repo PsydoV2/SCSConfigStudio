@@ -5,12 +5,18 @@ import { Tooltip } from "../ui/Tooltip";
 interface ToggleParamProps {
   param: ParameterDef;
   value: number;
+  savedValue: number;
   onChange: (key: string, value: number) => void;
 }
 
-export function ToggleParam({ param, value, onChange }: ToggleParamProps) {
-  const isOn       = value === 1;
-  const isModified = value !== param.defaultValue;
+export function ToggleParam({
+  param,
+  value,
+  savedValue,
+  onChange,
+}: ToggleParamProps) {
+  const isOn = value === 1;
+  const isModified = value !== savedValue;
 
   function handleClick() {
     onChange(param.key, isOn ? 0 : 1);
