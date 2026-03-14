@@ -1,6 +1,6 @@
 {
   "name": "scsconfigstudio",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "SCSConfigStudio",
   "main": "./out/main/index.js",
   "author": "Psydo",
@@ -45,25 +45,5 @@
     "react-dom": "^19.2.1",
     "typescript": "^5.9.3",
     "vite": "^7.2.6"
-  },
-  "build": {
-    "appId": "com.psydo.scsconfigstudio",
-    "productName": "SCS Config Studio",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "out/**/*"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    }
   }
 }

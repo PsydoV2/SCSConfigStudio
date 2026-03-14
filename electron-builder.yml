@@ -1,5 +1,6 @@
 appId: com.psydo.scsconfigstudio
 productName: SCS Config Studio
+icon: resources/icon.png
 directories:
   buildResources: build
 files:
