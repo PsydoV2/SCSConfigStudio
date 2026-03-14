@@ -7,14 +7,14 @@ export const GAMES: GameInfo[] = [
     id: "ets2",
     name: "Euro Truck Simulator 2",
     shortName: "ETS2",
-    flag: "🇪🇺",
+    flag: "EU",
     configSubPath: "Euro Truck Simulator 2/config.cfg",
   },
   {
     id: "ats",
     name: "American Truck Simulator",
     shortName: "ATS",
-    flag: "🇺🇸",
+    flag: "US",
     configSubPath: "American Truck Simulator/config.cfg",
   },
 ];
@@ -22,11 +22,11 @@ export const GAMES: GameInfo[] = [
 // ─── Categories ───────────────────────────────────────────────────────────────
 
 export const CATEGORIES: CategoryDef[] = [
-  { id: "world", label: "World & Traffic", icon: "🌍" },
-  { id: "performance", label: "Performance", icon: "⚡" },
-  { id: "developer", label: "Developer Tools", icon: "🛠" },
-  { id: "physics", label: "Physics", icon: "🚛" },
-  { id: "vr", label: "VR", icon: "🥽" },
+  { id: "world", label: "World & Traffic", icon: "world" },
+  { id: "performance", label: "Performance", icon: "performance" },
+  { id: "developer", label: "Developer Tools", icon: "developer" },
+  { id: "physics", label: "Physics", icon: "physics" },
+  { id: "vr", label: "VR", icon: "vr" },
 ];
 
 // ─── Parameters ───────────────────────────────────────────────────────────────

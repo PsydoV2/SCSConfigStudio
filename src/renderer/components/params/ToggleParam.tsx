@@ -27,7 +27,7 @@ export function ToggleParam({
       <div className="param-card__meta">
         <div className="param-card__label-row">
           <span className="param-card__label">{param.label}</span>
-          {isModified && <Badge variant="modified">modified</Badge>}
+          {isModified && <Badge variant="modified">edited</Badge>}
           <Tooltip text={param.tooltip} />
         </div>
         <code className="param-card__cfg-key">{param.cfgKey}</code>

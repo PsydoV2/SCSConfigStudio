@@ -46,6 +46,7 @@ export function useConfig(gameId: GameId): UseConfigReturn {
         return true;
       } else {
         setLastError(result.error ?? "Unknown error");
+        setConfigPath(null); // clear stale path from a previous game
         setStatus("error");
         return false;
       }

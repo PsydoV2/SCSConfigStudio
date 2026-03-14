@@ -41,8 +41,8 @@ export function SliderParam({
         <div className="param-card__meta">
           <div className="param-card__label-row">
             <span className="param-card__label">{param.label}</span>
-            {isModified && <Badge variant="modified">modified</Badge>}
-            {hasWarning && <Badge variant="warning">⚠ warning</Badge>}
+            {isModified && <Badge variant="modified">edited</Badge>}
+            {hasWarning && <Badge variant="warning">warning</Badge>}
             <Tooltip text={param.tooltip} />
           </div>
           <div className="param-card__sub-row">

@@ -17,6 +17,12 @@ interface AppAPI {
   system: {
     getInfo: () => Promise<IpcSystemInfo>;
   };
+  window: {
+    minimize:    () => void;
+    maximize:    () => void;
+    close:       () => void;
+    isMaximized: () => Promise<boolean>;
+  };
 }
 
 declare global {

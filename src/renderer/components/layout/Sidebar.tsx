@@ -1,20 +1,33 @@
 import { CATEGORIES, PARAMETERS } from "../../../constants/parameters";
 import { GAMES } from "../../../constants/parameters";
 import type { CategoryId, GameId, ParamValues } from "../../../shared/types";
-import { Button } from "../ui/Button";
+import {
+  IconTruckLogo,
+  IconGlobe,
+  IconZap,
+  IconTerminal,
+  IconTruck,
+  IconVr,
+} from "../ui/Icons";
 
 interface SidebarProps {
   activeGame: GameId;
   activeCategory: CategoryId;
   values: ParamValues;
-  savedValues: ParamValues; // what's on disk — badges show diff against this
+  savedValues: ParamValues;
   configPath: string | null;
   modifiedCount: number;
-  showPreview: boolean;
   onGameChange: (game: GameId) => void;
   onCategoryChange: (cat: CategoryId) => void;
-  onTogglePreview: () => void;
 }
+
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  world: <IconGlobe size={15} />,
+  performance: <IconZap size={15} />,
+  developer: <IconTerminal size={15} />,
+  physics: <IconTruck size={15} />,
+  vr: <IconVr size={15} />,
+};
 
 export function Sidebar({
   activeGame,
@@ -23,38 +36,17 @@ export function Sidebar({
   savedValues,
   configPath,
   modifiedCount,
-  showPreview,
   onGameChange,
   onCategoryChange,
-  onTogglePreview,
 }: SidebarProps) {
   return (
     <aside className="sidebar">
       {/* Logo */}
       <div className="sidebar__logo">
         <div className="sidebar__logo-icon" aria-hidden="true">
-          <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
-            <path
-              d="M4 20L14 8L24 20"
-              stroke="#ff9100"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <circle cx="14" cy="20" r="3" fill="#ff9100" />
-            <path
-              d="M9 20h10"
-              stroke="#ff9100"
-              strokeWidth="2"
-              strokeLinecap="round"
-              opacity="0.35"
-            />
-          </svg>
+          <IconTruckLogo size={26} />
         </div>
-        <div>
-          <div className="sidebar__logo-title">SCS Config</div>
-          <div className="sidebar__logo-sub">Studio</div>
-        </div>
+        <div className="sidebar__logo-title">SCS Config Studio</div>
       </div>
 
       {/* Game Switcher */}
@@ -67,14 +59,9 @@ export function Sidebar({
             onClick={() => onGameChange(game.id)}
             aria-pressed={activeGame === game.id}
           >
-            <span className="game-btn__flag">{game.flag}</span>
+            <span className="game-btn__abbr">{game.shortName}</span>
             <div className="game-btn__text">
-              <span className="game-btn__name">
-                {game.name.split(" ").slice(0, 2).join(" ")}
-              </span>
-              <span className="game-btn__sub">
-                {game.name.split(" ").slice(2).join(" ")}
-              </span>
+              <span className="game-btn__name">{game.name}</span>
             </div>
             {activeGame === game.id && (
               <span className="game-btn__dot" aria-hidden="true" />
@@ -100,13 +87,13 @@ export function Sidebar({
               aria-current={activeCategory === cat.id ? "page" : undefined}
             >
               <span className="cat-btn__icon" aria-hidden="true">
-                {cat.icon}
+                {CATEGORY_ICONS[cat.icon] ?? null}
               </span>
               <span className="cat-btn__label">{cat.label}</span>
               {modified > 0 && (
                 <span
                   className="cat-btn__badge"
-                  aria-label={`${modified} modified`}
+                  aria-label={`${modified} unsaved`}
                 >
                   {modified}
                 </span>
@@ -131,9 +118,6 @@ export function Sidebar({
             </span>
           </div>
         )}
-        <Button variant="ghost" size="sm" onClick={onTogglePreview}>
-          {showPreview ? "Hide" : "Show"} .cfg preview
-        </Button>
       </div>
     </aside>
   );

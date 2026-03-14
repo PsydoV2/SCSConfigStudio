@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: electrontypescriptreacttemplate
+appId: com.psydo.scsconfigstudio
+productName: SCS Config Studio
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: electrontypescriptreacttemplate
+  executableName: SCSConfigStudio
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -21,8 +21,6 @@ nsis:
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
@@ -31,9 +29,8 @@ dmg:
 linux:
   target:
     - AppImage
-    - snap
     - deb
-  maintainer: electronjs.org
+  maintainer: Psydo
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}

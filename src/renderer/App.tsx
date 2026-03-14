@@ -2,10 +2,11 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { PARAMETERS, RECOMMENDED_VALUES } from "../constants/parameters";
 import { useConfig } from "./hooks/useConfig";
 import { useToast } from "./context/ToastContext";
+import { TitleBar } from "./components/layout/TitleBar";
 import { Sidebar } from "./components/layout/Sidebar";
 import { Toolbar } from "./components/layout/Toolbar";
 import { ActionBar } from "./components/layout/ActionBar";
-import { CfgPreview } from "./components/layout/CfgPreview";
+import { ConfigEmpty } from "./components/layout/ConfigEmpty";
 import { ParamControl } from "./components/params/ParamControl";
 import type { CategoryId, GameId } from "../shared/types";
 
@@ -13,13 +14,10 @@ export function App() {
   const [activeGame, setActiveGame] = useState<GameId>("ets2");
   const [activeCategory, setActiveCategory] = useState<CategoryId>("world");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showPreview, setShowPreview] = useState(false);
 
   const { showToast } = useToast();
-
   const config = useConfig(activeGame);
 
-  // Switch game without losing independent state per game
   function handleGameChange(game: GameId) {
     setActiveGame(game);
     setSearchQuery("");
@@ -30,57 +28,72 @@ export function App() {
     setSearchQuery("");
   }
 
-  // Auto-load config whenever the active game changes (and on initial mount).
-  // The hook's useEffect triggers loadFromFile; we watch status here for toast feedback.
+  // Auto-load config when the active game changes and on initial mount.
+  // Only show a toast for errors — a successful load is the expected happy path.
+  // loadFromFile and showToast are stable (useCallback), safe to exclude from deps.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     config.loadFromFile().then((ok) => {
-      if (ok) {
-        showToast("Config loaded", "success");
-      } else {
-        showToast(config.lastError ?? "Config file not found", "error");
+      if (!ok) {
+        showToast("Config file not found — is the game installed?", "error");
       }
     });
-    // Re-run only when the game changes — intentionally omitting other deps.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeGame]);
+  }, [activeGame]); // intentionally only re-runs when the active game changes
 
   const handleLoad = useCallback(async () => {
     const ok = await config.loadFromFile();
     if (ok) {
       showToast("Config reloaded from file", "success");
     } else {
-      showToast(config.lastError ?? "Failed to load config", "error");
+      showToast("Config file not found.", "error");
     }
-  }, [config, showToast]);
+  }, [config.loadFromFile, showToast]);
 
   const handleSave = useCallback(async () => {
     const backupPath = await config.saveToFile();
     if (backupPath) {
-      showToast("Config saved. Backup created.", "success");
+      showToast("Saved. Backup created.", "success");
     } else {
-      showToast(config.lastError ?? "Failed to save config", "error");
+      showToast("Failed to save — check the error above.", "error");
     }
-  }, [config, showToast]);
+  }, [config.saveToFile, showToast]);
 
   const handleReset = useCallback(() => {
+    if (
+      !window.confirm(
+        "Reset all parameters to their default values?\n\nThis does not affect the file on disk until you save.",
+      )
+    )
+      return;
     config.resetToDefaults();
     showToast("Reset to defaults", "info");
-  }, [config, showToast]);
+  }, [config.resetToDefaults, showToast]);
 
   const handleApplyRecommended = useCallback(() => {
     config.applyRecommended(RECOMMENDED_VALUES);
     showToast("Recommended values applied", "success");
-  }, [config, showToast]);
+  }, [config.applyRecommended, showToast]);
 
-  const handleCopyPreview = useCallback(() => {
-    const lines = PARAMETERS.map(
-      (p) => `uset ${p.cfgKey} "${config.values[p.key] ?? p.defaultValue}"`,
-    ).join("\n");
-    navigator.clipboard.writeText(lines);
-    showToast("Copied to clipboard", "success");
-  }, [config.values, showToast]);
+  // Keyboard shortcuts: Ctrl+S (save), Ctrl+R (reload), Ctrl+F (focus search)
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const mod = e.ctrlKey || e.metaKey;
+      if (!mod) return;
+      if (e.key === "s") {
+        e.preventDefault();
+        if (config.isDirty && config.status === "idle") handleSave();
+      } else if (e.key === "r") {
+        e.preventDefault();
+        if (config.status === "idle" || config.status === "error") handleLoad();
+      } else if (e.key === "f") {
+        e.preventDefault();
+        document.querySelector<HTMLInputElement>(".search__input")?.focus();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [config.isDirty, config.status, handleSave, handleLoad]);
 
-  // Filtered parameters: search across all categories, or filter by active category
   const displayedParams = useMemo(() => {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -94,8 +107,6 @@ export function App() {
     return PARAMETERS.filter((p) => p.category === activeCategory);
   }, [searchQuery, activeCategory]);
 
-  // "modified" means changed compared to what's currently saved in the file,
-  // not compared to the hardcoded defaults.
   const modifiedCount = useMemo(
     () =>
       PARAMETERS.filter(
@@ -104,8 +115,12 @@ export function App() {
     [config.values, config.savedValues],
   );
 
+  const configNotFound =
+    config.status === "error" && config.configPath === null;
+
   return (
     <div className="app">
+      <TitleBar />
       <Sidebar
         activeGame={activeGame}
         activeCategory={activeCategory}
@@ -113,10 +128,8 @@ export function App() {
         savedValues={config.savedValues}
         configPath={config.configPath}
         modifiedCount={modifiedCount}
-        showPreview={showPreview}
         onGameChange={handleGameChange}
         onCategoryChange={handleCategoryChange}
-        onTogglePreview={() => setShowPreview((v) => !v)}
       />
 
       <div className="main">
@@ -125,40 +138,43 @@ export function App() {
           searchQuery={searchQuery}
           paramCount={displayedParams.length}
           onSearchChange={setSearchQuery}
+          disabled={configNotFound}
         />
 
-        {showPreview && (
-          <CfgPreview values={config.values} onCopy={handleCopyPreview} />
-        )}
-
-        {config.lastError && (
-          <div className="error-banner" role="alert">
-            ⚠ {config.lastError}
+        {configNotFound ? (
+          <ConfigEmpty
+            activeGame={activeGame}
+            errorMessage={config.lastError}
+            isRetrying={config.status === "loading"}
+            onRetry={handleLoad}
+          />
+        ) : (
+          <div className="param-list">
+            {displayedParams.length === 0 ? (
+              <p className="param-list__empty">
+                No parameters found for &ldquo;{searchQuery}&rdquo;
+              </p>
+            ) : (
+              displayedParams.map((param) => (
+                <ParamControl
+                  key={param.key}
+                  param={param}
+                  value={config.values[param.key] ?? param.defaultValue}
+                  savedValue={
+                    config.savedValues[param.key] ?? param.defaultValue
+                  }
+                  onChange={config.updateValue}
+                />
+              ))
+            )}
           </div>
         )}
-
-        <div className="param-list">
-          {displayedParams.length === 0 ? (
-            <p className="param-list__empty">
-              No parameters found for "{searchQuery}"
-            </p>
-          ) : (
-            displayedParams.map((param) => (
-              <ParamControl
-                key={param.key}
-                param={param}
-                value={config.values[param.key] ?? param.defaultValue}
-                savedValue={config.savedValues[param.key] ?? param.defaultValue}
-                onChange={config.updateValue}
-              />
-            ))
-          )}
-        </div>
 
         <ActionBar
           activeGame={activeGame}
           isDirty={config.isDirty}
           status={config.status}
+          configNotFound={configNotFound}
           onReset={handleReset}
           onRecommended={handleApplyRecommended}
           onLoad={handleLoad}

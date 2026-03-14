@@ -13,9 +13,19 @@ export function Tooltip({ text }: TooltipProps) {
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
     >
-      <span className="tooltip__trigger" aria-label="More info">?</span>
+      <button
+        type="button"
+        className="tooltip__trigger"
+        aria-label="More info"
+        onFocus={() => setVisible(true)}
+        onBlur={() => setVisible(false)}
+      >
+        i
+      </button>
       {visible && (
-        <span className="tooltip__box" role="tooltip">{text}</span>
+        <span className="tooltip__box" role="tooltip">
+          {text}
+        </span>
       )}
     </span>
   );

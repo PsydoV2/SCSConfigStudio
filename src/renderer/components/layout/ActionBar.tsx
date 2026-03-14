@@ -1,11 +1,13 @@
 import { GAMES } from "../../../constants/parameters";
 import type { GameId } from "../../../shared/types";
 import { Button } from "../ui/Button";
+import { IconRotateCcw, IconRefreshCw, IconSparkles, IconSave } from "../ui/Icons";
 
 interface ActionBarProps {
   activeGame: GameId;
   isDirty: boolean;
   status: "idle" | "loading" | "saving" | "error";
+  configNotFound: boolean;
   onReset: () => void;
   onRecommended: () => void;
   onLoad: () => void;
@@ -16,6 +18,7 @@ export function ActionBar({
   activeGame,
   isDirty,
   status,
+  configNotFound,
   onReset,
   onRecommended,
   onLoad,
@@ -27,18 +30,27 @@ export function ActionBar({
   return (
     <footer className="action-bar">
       <div className="action-bar__left">
-        <Button variant="ghost" onClick={onReset} disabled={isBusy}>
-          ↺ Reset All
+        <Button
+          variant="ghost"
+          onClick={onReset}
+          disabled={isBusy || configNotFound}
+        >
+          <IconRotateCcw size={13} />
+          Reset to Defaults
         </Button>
-        <Button variant="secondary" onClick={onRecommended} disabled={isBusy}>
-          ★ Apply Recommended
+        <Button
+          variant="secondary"
+          onClick={onRecommended}
+          disabled={isBusy || configNotFound}
+        >
+          <IconSparkles size={13} />
+          Apply Recommended
         </Button>
       </div>
 
       <div className="action-bar__right">
         {game && (
           <div className="action-bar__game-chip">
-            <span>{game.flag}</span>
             <span>{game.shortName}</span>
             {isDirty && (
               <span
@@ -49,14 +61,16 @@ export function ActionBar({
           </div>
         )}
         <Button variant="secondary" onClick={onLoad} disabled={isBusy}>
-          {status === "loading" ? "Loading…" : "↺ Reload File"}
+          <IconRefreshCw size={13} />
+          {status === "loading" ? "Loading…" : "Reload File"}
         </Button>
         <Button
           variant="primary"
           onClick={onSave}
-          disabled={isBusy || !isDirty}
+          disabled={isBusy || !isDirty || configNotFound}
         >
-          {status === "saving" ? "Saving…" : "Save & Apply"}
+          <IconSave size={13} />
+          {status === "saving" ? "Saving…" : "Save to File"}
         </Button>
       </div>
     </footer>

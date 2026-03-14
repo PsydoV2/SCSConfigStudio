@@ -9,9 +9,9 @@ import type {
   ParamValues,
 } from "../shared/types";
 
-// Re-export IPC channel names so renderer can't accidentally hardcode strings
 import { IPC as CONFIG_IPC } from "../main/ipc/configHandlers";
 import { IPC as SYSTEM_IPC } from "../main/ipc/systemHandlers";
+import { WINDOW_IPC } from "../main/ipc/windowHandlers";
 
 const api = {
   config: {
@@ -28,6 +28,13 @@ const api = {
   system: {
     getInfo: (): Promise<IpcSystemInfo> =>
       ipcRenderer.invoke(SYSTEM_IPC.GET_SYSTEM_INFO),
+  },
+
+  window: {
+    minimize:    (): void        => ipcRenderer.send(WINDOW_IPC.MINIMIZE),
+    maximize:    (): void        => ipcRenderer.send(WINDOW_IPC.MAXIMIZE),
+    close:       (): void        => ipcRenderer.send(WINDOW_IPC.CLOSE),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke(WINDOW_IPC.IS_MAXIMIZED),
   },
 } as const;
 

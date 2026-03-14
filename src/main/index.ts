@@ -11,9 +11,9 @@ function createWindow(): void {
     minWidth: 800,
     minHeight: 560,
     show: false,
+    frame: false,
     autoHideMenuBar: true,
-    titleBarStyle: "hiddenInset",
-    ...(process.platform === "linux" ? { icon } : { icon }),
+    icon,
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
